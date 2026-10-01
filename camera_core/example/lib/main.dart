@@ -29,7 +29,6 @@ class ExampleCameraScreen extends StatefulWidget {
 class _ExampleCameraScreenState extends State<ExampleCameraScreen>
     with WidgetsBindingObserver {
   late final ICameraService _camera = CameraCore.createService();
-  double _zoom = 1.0;
   String? _lastCapturePath;
 
   @override
@@ -60,62 +59,44 @@ class _ExampleCameraScreenState extends State<ExampleCameraScreen>
     }
   }
 
-  Future<void> _capture() async {
-    try {
-      final result = await _camera.takePicture();
-      if (mounted) setState(() => _lastCapturePath = result.path);
-    } on CameraException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
-      }
-    }
-  }
-
-  Future<void> _applyZoom(double value) async {
-    setState(() => _zoom = value);
-    try {
-      await _camera.setZoomLevel(value);
-    } on CameraException {
-      // Ignorar en el ejemplo.
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final caps = _camera.capabilities;
+    // Experiencia conveniente (nivel 3) componiendo los primitivos de control
+    // (nivel 2) en el slot controlsBuilder. Sin flags de visibilidad.
     return Scaffold(
       appBar: AppBar(title: const Text('camera_core example')),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          CameraView(controller: _camera),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 24,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (caps != null && caps.supportsZoom)
-                  Slider(
-                    value: _zoom.clamp(caps.minZoom, caps.maxZoom),
-                    min: caps.minZoom,
-                    max: caps.maxZoom,
-                    onChanged: _applyZoom,
+      body: CameraView(
+        controller: _camera,
+        controlsBuilder: (context) => Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CameraZoomControl(controller: _camera),
+              if (_lastCapturePath != null)
+                Text('Última captura: $_lastCapturePath',
+                    style: const TextStyle(color: Colors.white)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CameraFlashButton(controller: _camera),
+                  const SizedBox(width: 16),
+                  CameraCaptureButton(
+                    controller: _camera,
+                    onCaptured: (r) {
+                      if (mounted) {
+                        setState(() => _lastCapturePath = r.path);
+                      }
+                    },
                   ),
-                if (_lastCapturePath != null)
-                  Text('Última captura: $_lastCapturePath',
-                      style: const TextStyle(color: Colors.white)),
-                const SizedBox(height: 8),
-                FloatingActionButton(
-                  onPressed: _capture,
-                  child: const Icon(Icons.camera),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 16),
+                  CameraSwitchButton(controller: _camera),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -2,18 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../contracts/camera_service.dart';
 import '../models/camera_error.dart';
-import '../models/camera_state.dart';
+import 'camera_preview.dart';
+import 'camera_state_builder.dart';
 
-/// Widget de preview reutilizable y DELGADO.
+/// Experiencia de cámara CONVENIENTE y componible (nivel 3).
 ///
-/// Solo pinta el preview de la cámara y reacciona a los estados del ciclo de
-/// vida vía [ICameraService.stateStream]. No conoce `package:camera`, no
-/// contiene controles, overlays de negocio ni tap-to-focus: todo eso lo inyecta
-/// el consumidor mediante los `*Builder` y [overlay].
+/// Compone, por defecto, un preview a pantalla completa ([CameraPreview])
+/// envuelto en la máquina de estados ([CameraStateBuilder]), con slots
+/// opcionales para overlay y controles. **No impone diseño ni usa flags de
+/// visibilidad** del tipo `showFlashButton: true`: los controles se inyectan
+/// como un widget vía [controlsBuilder], que la app compone con los primitivos
+/// (`CameraCaptureButton`, `CameraFlashButton`, `CameraZoomControl`, ...).
 ///
-/// Uso típico:
+/// Es solo una comodidad: quien necesite composición libre puede ignorar este
+/// widget y usar directamente [CameraPreview] + [CameraStateBuilder] + los
+/// controles sueltos.
+///
 /// ```dart
-/// CameraView(controller: cameraService)
+/// CameraView(
+///   controller: service,
+///   controlsBuilder: (ctx) => Row(children: [
+///     CameraFlashButton(controller: service),
+///     CameraCaptureButton(controller: service, onCaptured: _save),
+///     CameraSwitchButton(controller: service),
+///   ]),
+/// )
 /// ```
 class CameraView extends StatelessWidget {
   /// Servicio de cámara. Única dependencia; el widget no toca el plugin.
@@ -22,65 +35,56 @@ class CameraView extends StatelessWidget {
   /// Cómo encajar el preview. Por defecto `cover`.
   final BoxFit fit;
 
-  /// Builder para los estados `initializing`/`uninitialized`.
-  /// Por defecto, un indicador de progreso centrado.
-  final WidgetBuilder? loadingBuilder;
-
-  /// Builder para `permissionDenied`. Por defecto no pinta nada.
-  final WidgetBuilder? permissionDeniedBuilder;
-
-  /// Builder para `unavailable` (sin cámara). Por defecto no pinta nada.
-  final WidgetBuilder? unavailableBuilder;
-
-  /// Builder para `error`. Por defecto no pinta nada. El [CameraException] es
-  /// `null` aquí porque el estado reactivo no transporta la excepción; el
-  /// consumidor que necesite el detalle puede capturarlo en sus llamadas.
-  final Widget Function(BuildContext, CameraException?)? errorBuilder;
-
-  /// Overlay opcional dibujado encima del preview cuando el estado es `ready`.
-  /// `camera_core` no provee overlays de negocio; el consumidor los inyecta.
+  /// Overlay opcional dibujado encima del preview en estado `ready`
+  /// (guías, marcos, indicador de enfoque de la app...).
   final Widget? overlay;
+
+  /// Controles opcionales, posicionados por [controlsAlignment] sobre el
+  /// preview. La app los compone con los primitivos de control del paquete.
+  final WidgetBuilder? controlsBuilder;
+
+  /// Alineación del bloque de controles dentro del preview.
+  final AlignmentGeometry controlsAlignment;
+
+  /// Builders por estado (delegados a [CameraStateBuilder]).
+  final WidgetBuilder? loadingBuilder;
+  final WidgetBuilder? permissionDeniedBuilder;
+  final WidgetBuilder? unavailableBuilder;
+  final Widget Function(BuildContext, CameraException?)? errorBuilder;
 
   const CameraView({
     super.key,
     required this.controller,
     this.fit = BoxFit.cover,
+    this.overlay,
+    this.controlsBuilder,
+    this.controlsAlignment = Alignment.bottomCenter,
     this.loadingBuilder,
     this.permissionDeniedBuilder,
     this.unavailableBuilder,
     this.errorBuilder,
-    this.overlay,
   });
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<CameraState>(
-      stream: controller.stateStream,
-      initialData: controller.state,
-      builder: (context, snapshot) {
-        final state = snapshot.data ?? CameraState.uninitialized;
-        switch (state) {
-          case CameraState.ready:
-            final preview = controller.buildPreview(fit: fit);
-            if (overlay == null) return preview;
-            return Stack(
-              fit: StackFit.expand,
-              children: [preview, overlay!],
-            );
-          case CameraState.permissionDenied:
-            return permissionDeniedBuilder?.call(context) ??
-                const SizedBox.shrink();
-          case CameraState.unavailable:
-            return unavailableBuilder?.call(context) ?? const SizedBox.shrink();
-          case CameraState.error:
-            return errorBuilder?.call(context, null) ?? const SizedBox.shrink();
-          case CameraState.initializing:
-          case CameraState.uninitialized:
-            return loadingBuilder?.call(context) ??
-                const Center(child: CircularProgressIndicator());
-          case CameraState.disposed:
-            return const SizedBox.shrink();
-        }
+    return CameraStateBuilder(
+      controller: controller,
+      loadingBuilder: loadingBuilder,
+      permissionDeniedBuilder: permissionDeniedBuilder,
+      unavailableBuilder: unavailableBuilder,
+      errorBuilder: errorBuilder,
+      ready: (context) {
+        final children = <Widget>[
+          CameraPreview(controller: controller, fit: fit),
+          if (overlay != null) overlay!,
+          if (controlsBuilder != null)
+            Align(
+              alignment: controlsAlignment,
+              child: controlsBuilder!(context),
+            ),
+        ];
+        if (children.length == 1) return children.first;
+        return Stack(fit: StackFit.expand, children: children);
       },
     );
   }

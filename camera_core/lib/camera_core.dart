@@ -39,8 +39,22 @@ export 'src/models/camera_frame.dart'
         CameraFrameMetadata;
 export 'src/models/frame_stream_config.dart' show FrameStreamConfig;
 
-// --- Presentación reutilizable ---
+// --- Presentación: primitivos de UI componibles ---
+//
+// Tres niveles de composición:
+//  1. CameraPreview        -> solo el render del preview (composición libre).
+//  2. Controles sueltos     -> una pieza por capacidad, sin barra ni flags.
+//  3. CameraView            -> experiencia conveniente que compone 1 + 2.
+// CameraStateBuilder expone la máquina de estados para composiciones a medida.
+export 'src/widgets/camera_preview.dart' show CameraPreview;
+export 'src/widgets/camera_state_builder.dart' show CameraStateBuilder;
 export 'src/widgets/camera_view.dart' show CameraView;
+export 'src/widgets/controls/camera_capture_button.dart'
+    show CameraCaptureButton;
+export 'src/widgets/controls/camera_flash_button.dart' show CameraFlashButton;
+export 'src/widgets/controls/camera_switch_button.dart' show CameraSwitchButton;
+export 'src/widgets/controls/camera_zoom_control.dart' show CameraZoomControl;
+export 'src/widgets/controls/camera_focus_gesture.dart' show CameraFocusGesture;
 
 // --- Logging (puerto; la app puede puentearlo a su propio logger) ---
 export 'src/infrastructure/camera_logger.dart'

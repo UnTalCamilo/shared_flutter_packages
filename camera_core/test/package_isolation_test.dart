@@ -78,4 +78,34 @@ void main() {
               '$offenders');
     });
   });
+
+  group('Capas de UI', () {
+    test('los widgets dependen del contrato/modelos, no de infraestructura', () {
+      // Los primitivos de UI (preview, state builder, view, controles) deben
+      // consumir solo ICameraService y modelos públicos; nunca el wrapper, el
+      // permission handler ni la impl concreta del servicio.
+      const forbiddenInfra = [
+        'camera_controller_wrapper',
+        'camera_permission_handler',
+        'camera_service_impl',
+      ];
+      final offenders = <String>[];
+      for (final file in _dartFiles('lib/src/widgets')) {
+        final importLines = file
+            .readAsLinesSync()
+            .where((l) => l.trimLeft().startsWith('import '))
+            .map((l) => l.toLowerCase());
+        for (final line in importLines) {
+          for (final symbol in forbiddenInfra) {
+            if (line.contains(symbol)) {
+              offenders.add('${file.path.replaceAll(r'\', '/')} → $symbol');
+            }
+          }
+        }
+      }
+      expect(offenders, isEmpty,
+          reason: 'La UI no debe acoplarse a la infraestructura interna: '
+              '$offenders');
+    });
+  });
 }
