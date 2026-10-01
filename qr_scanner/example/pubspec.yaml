@@ -1,0 +1,22 @@
+name: qr_scanner_example
+description: App de ejemplo mínima que compone camera_core + qr_scanner.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.4
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera_core:
+    path: ../../camera_core
+  qr_scanner:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
