@@ -81,7 +81,7 @@ Responsabilidades por capa:
 |---|---|---|---|---|
 | `camera_core` | `[EXISTE]` | Infraestructura: cámara, preview, controles, captura, frame stream, permisos, estado. `CameraFrame` neutral. | CAPPFRONT (actual); SAPIENS (futuro) | Ya extraído y validado. |
 | `qr_scanner` | `[EXISTE]` | Capacidad QR/barras sobre `camera_core`; ML Kit confinado; sesiones con throttle + política de duplicados; overlay opcional. | CAPPFRONT (demo); SAPIENS (futuro, ingreso) | Ya extraído. |
-| `face_detection` | `[PROPUESTO]` | Detección **geométrica** de rostro (bounding box, landmarks, ángulos). | CAPPFRONT (ya tiene el servicio); SAPIENS (guía facial futura) | El servicio y modelos ya existen en CAPPFRONT y podrían trasladarse. Requiere aprobar frontera de UI y estrategia de conversión de frames. |
+| `face_detection` | `[EXISTE]` | Detección **geométrica** de rostro (bounding box, landmarks, ángulos) sobre `camera_core`; ML Kit confinado; `IFaceDetector.detect(CameraFrame)` + `FaceDetection.create()`; config mínima; sin estado de stream (throttle/UI en la app). | CAPPFRONT (consumiéndolo); SAPIENS (guía facial futura) | Extraído y verificado (2026-10-01). Solo detección geométrica; sin reconocimiento ni verificación de identidad. |
 | `document_capture` | `[FUTURO]` | Detección de documento + evaluación de calidad + autocaptura (orquestación técnica). | SAPIENS (futuro) | Solo con caso real de SAPIENS. Agrupar las tres sub-funciones (comparten frame y ciclo de vida). |
 | `document_recognition` | `[FUTURO]` | OCR y extracción estructurada de campos, con confianza. | SAPIENS (futuro) | Solo con caso real. El **esquema de campos por tipo de documento** es parcialmente negocio. |
 | `image_processing` | `[FUTURO]` | Recorte, corrección de perspectiva, resize, conversión de formato. | SAPIENS (futuro, documental) | Solo cuando `document_capture` deba entregar un documento rectificado a OCR. **Hoy no existe nada de esto en CAPPFRONT.** |
@@ -205,12 +205,14 @@ Rutas conocidas (actualizar solo las rutas si se trabaja desde otro equipo; los 
 
 `[EXISTE]` **`qr_scanner`** — primer consumidor de `camera_core`; encapsula ML Kit tras contratos propios (`IQrScanner`, sesión, modelos neutrales); throttle + política de duplicados; overlay opcional. No expone tipos de ML Kit ni `package:camera`. Última validación reportada: 24/24 tests, análisis limpio. Alineado con la versión de ML Kit que usa CAPPFRONT (`google_mlkit_commons ^0.13.0`). Se creó una pantalla demo en CAPPFRONT con dos composiciones (preview + overlay) — es prueba de integración, **no** indica que QR sea central en CAPPFRONT.
 
+`[EXISTE]` **`face_detection`** — segunda capacidad de visión; extraída de CAPPFRONT (2026-10-01). Encapsula `google_mlkit_face_detection ^0.15.1` tras `IFaceDetector` (`detect(CameraFrame) → FaceDetectionResult?` + `dispose()`), `FaceDetection.create()`, modelos propios (`DetectedFace`/`FaceLandmarkKey`/`FaceDetectionResult`, con landmarks y ángulos de Euler), `FaceDetectionConfig` mínima (`maxFaces`/`enableLandmarks`/`minFaceSize`/`performanceMode`) y puerto `FaceDetectionLogger`. No expone tipos de ML Kit ni `package:camera`. Preview-only: sin estado de stream; throttle/drop-if-busy y UI (overlay/brackets/mapeo de coordenadas) permanecen en la app. **Solo detección geométrica**; sin reconocimiento ni verificación de identidad. Validación: `flutter analyze` limpio + 26/26 tests del paquete; CAPPFRONT lo consume por `path:` (`flutter analyze` 0 errores, 33/33 tests de cámara). La conversión `CameraFrame→InputImage` se duplica de forma controlada respecto a `qr_scanner` (decisión R1/D3).
+
 Hallazgos previos en CAPPFRONT (auditoría de código real):
 - `package:camera` **sin imports directos** en `lib/` tras encapsularse en `camera_core`.
 - Procesamiento de archivos de imagen **mínimo**: selección + carga multipart del original; **no** hay pipeline de compresión, resize, crop, formato ni EXIF.
 - El único "procesamiento de imagen" presente es un **shader GPU del preview en vivo**, no una transformación de archivos.
 - Existe un **QR legacy** separado basado en `mobile_scanner` que duplica una capacidad que `qr_scanner` ya cubre. **No migrado.**
-- **Detección facial** aislada detrás de un único punto de uso (ML Kit confinado) — candidata a extracción.
+- **Detección facial** — **extraída** al paquete `face_detection` (2026-10-01). Tras la extracción, CAPPFRONT ya **no** importa `google_mlkit_*` en `lib/`; ML Kit queda confinado en los paquetes de capacidad (`face_detection`, `qr_scanner`). El overlay facial, el estilo de brackets y el mapeo de coordenadas `mapFrameToView`/`mapRectToView` permanecen en CAPPFRONT (decisión R2).
 - Servicios de almacenamiento, logger de app y módulos de pegamento (DI) **no** son por sí mismos paquetes compartidos.
 - No hay evidencia para crear por anticipado `photo_capture`, `image_processing`, `camera_filters` ni `document_scanner`.
 
@@ -221,8 +223,8 @@ Hallazgos previos en CAPPFRONT (auditoría de código real):
 Estas **no** están decididas; se registran para acordarlas antes de implementar:
 
 - **D1 — Orden del roadmap:** ¿se arranca por consolidar el QR legacy de CAPPFRONT (§10, paso 1)?
-- **D2 — Frontera de UI de `face_detection`:** ¿el paquete incluye un overlay de guía facial componible, o solo expone datos y cada app pinta su guía?
-- **D3 — Conversión `CameraFrame→InputImage`:** ¿duplicación controlada o `mlkit_frame_adapter` mínimo, y en qué umbral? (No `vision_core`.)
+- **D2 — Frontera de UI de `face_detection`:** ✅ **RESUELTA (2026-10-01).** El paquete **no** incluye overlay; solo expone datos geométricos. El overlay, los brackets y el mapeo `mapFrameToView`/`mapRectToView` permanecen en CAPPFRONT. (`camera_core` no se modificó.)
+- **D3 — Conversión `CameraFrame→InputImage`:** ✅ **RESUELTA parcialmente (2026-10-01).** Se adoptó **duplicación controlada** entre `qr_scanner` y `face_detection` (son 2 adaptadores ML Kit). El umbral para evaluar un `mlkit_frame_adapter` mínimo sigue siendo el 3.er adaptador. No se creó `vision_core`.
 - **D4 — Alcance del catálogo:** ¿se confirma que `document_*`, `image_processing`, `image_quality` y `camera_filters` quedan `[FUTURO]`/`[NO JUSTIFICADO HOY]` sin diseño detallado hasta tener caso real?
 - **D5 — SAPIENS primero QR:** ¿la integración de SAPIENS empieza por QR antes que por documentos?
 - **D6 — Reconocimiento/verificación de identidad:** ¿se trata como capacidad separada futura con decisión de privacidad explícita, fuera de `face_detection`?

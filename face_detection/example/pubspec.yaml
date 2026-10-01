@@ -1,0 +1,22 @@
+name: face_detection_example
+description: App de ejemplo mínima que compone camera_core + face_detection.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera_core:
+    path: ../../camera_core
+  face_detection:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

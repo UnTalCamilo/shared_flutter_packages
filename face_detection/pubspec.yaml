@@ -1,0 +1,26 @@
+name: face_detection
+description: Capacidad de detección facial geométrica sobre camera_core. Aísla ML Kit tras un adaptador y expone modelos propios. No hace reconocimiento ni verificación de identidad.
+version: 0.1.0
+publish_to: 'none'
+
+# ML Kit face detection 0.15.x exige Dart ^3.12.0 / Flutter >=3.44.0,
+# alineado con qr_scanner y con la versión que ya usa CAPPFRONT.
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera_core:
+    path: ../camera_core
+  # 0.15.x depende de google_mlkit_commons ^0.13.0, misma línea que
+  # qr_scanner (barcode ^0.16.1). Es la versión que CAPPFRONT ya resuelve.
+  google_mlkit_face_detection: ^0.15.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
