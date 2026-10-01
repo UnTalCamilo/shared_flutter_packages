@@ -233,7 +233,58 @@ La decisión vigente es de **alcance y arquitectura**. No hay autorización impl
 
 ---
 
-## 14. Pregunta guía para retomar
+## 15. Evaluación de aplicabilidad en CAPPFRONT
+
+> Auditoría de **código real** de `D:\Projects\cappfront`, guiada por este documento. No modifica código, `pubspec.yaml`, paquetes ni apps. Clasifica responsabilidades, no carpetas. Las clasificaciones son evaluaciones, **no decisiones aprobadas**.
+
+**1. Fecha de revisión:** 2026-10-01.
+
+**2. Estado observado de CAPPFRONT:**
+- `camera_core` y `qr_scanner` consumidos vía dependencias `path:`. `package:camera` **sin imports directos** en `lib/` (encapsulado en `camera_core`).
+- ML Kit (`google_mlkit_*`) aparece en **un único archivo**: `core/services/camera/face_detection_service.dart`.
+- `mobile_scanner` aparece en **un único archivo**: `features/shared/qr/view/pages/qr_scan_screen.dart` (QR legacy, no migrado).
+- `package:qr_scanner` solo se usa en `features/qr_demo/qr_scanner_demo_screen.dart` (pantalla demo de integración).
+- Shader de preview: solo `core/services/realtime/color_adjust_shader.dart` + `realtime_preview_view.dart`, con `RealtimeParams`/`CameraLooks`.
+- **No existe pipeline de procesamiento de archivos de imagen:** sin compresión, resize, crop, corrección de perspectiva, conversión de formato ni EXIF en todo `lib/`.
+
+**3. Tabla de responsabilidades y clasificación:**
+
+| Responsabilidad | Archivos representativos | Evidencia de uso real | Clasificación | Justificación | Destino (si aplica) | Dependencias / riesgos |
+|---|---|---|---|---|---|---|
+| Infraestructura de cámara (preview, controles, captura, frames, permisos) | consumida vía `camera_core`; `core/di/camera_module.dart`, `core/services/camera/app_logger_camera_logger.dart` | Toda la experiencia de cámara la usa | `[EXISTE] COMPARTIR` (ya hecho) | Ya extraída y validada | `camera_core` | Ninguno nuevo |
+| Experiencia fotográfica (pantalla, controles de producto, hoja de resultado, composición) | `features/camera/presentation/camera_experience_screen.dart`, `camera_controls_bar.dart`, `camera_preview_area.dart`, `capture_result_sheet.dart`, `composition_overlay/guide.dart` | Pantalla de cámara de CAPPFRONT | `CONSERVAR EN APP` | UX/producto; orquesta lifecycle, looks, guardado | — | Acopla `camera_core` + shader + face + storage |
+| Detección facial (motor geométrico) | `core/services/camera/face_detection_service.dart`, `core/models/camera/face_detection_result.dart` | Alimentada por `frameStream` en la pantalla de cámara (preview-only) | `COMPARTIR PARCIALMENTE` → el motor y modelos; `[PROPUESTO] face_detection` | ML Kit confinado, modelos propios, patrón idéntico a `qr_scanner` | `face_detection` (propuesto) | Alinear ML Kit `commons ^0.13.0`; duplicación `CameraFrame→InputImage`; rotación/landscape sin calibrar |
+| Overlay facial (mapeo frame→vista + pintura) | `features/camera/presentation/widgets/face_detection_overlay.dart` | Overlay del preview | `COMPARTIR PARCIALMENTE` | `mapFrameToView`/`mapRectToView` (cover/crop/mirror) es genérico y reutilizable; el *estilo* de brackets es de producto | mapeo → candidato a `face_detection`; estilo → app | El mapeo depende del `BoxFit.cover` de `camera_core.buildPreview`; frontera a decidir (D2) |
+| Filtros / shader de preview | `core/services/realtime/color_adjust_shader.dart`, `realtime_preview_view.dart`, `core/models/camera/realtime_params.dart` | Looks en la pantalla de cámara | `CONSERVAR EN APP` (`[NO JUSTIFICADO HOY]` como paquete) | Un solo shader, 3 uniforms (brightness/contrast/saturation), catálogo de "looks" de producto; procesa el **render**, no archivos | — | Reevaluar solo si ≥2 efectos reales + API de parámetros estable |
+| QR (motor) | consumido vía `qr_scanner`; `features/qr_demo/qr_scanner_demo_screen.dart` | Demo de integración | `[EXISTE] COMPARTIR` (ya hecho) | Ya extraído | `qr_scanner` | — |
+| QR legacy (captura + overlay propios) | `features/shared/qr/view/pages/qr_scan_screen.dart` | **En uso real** para el flujo de QR del cliente | `COMPARTIR PARCIALMENTE` → reemplazar su captura `mobile_scanner` por `camera_core`+`qr_scanner`; UI/negocio se quedan | Duplica una capacidad ya cubierta; `mobile_scanner` directo | motor → `qr_scanner`; UI → app | Paridad de UX de escaneo (recuadro, torch); **no migrar sin aprobación** |
+| QR negocio (payload, roles, expiración) | `features/shared/qr/models/qr_payload.dart`, `viewmodel/qr_scan_vm.dart` | Procesa el QR escaneado | `CONSERVAR EN APP` | Lógica de negocio institucional | — | — |
+| QR generación | `features/shared/qr/view/pages/qr_generate_screen.dart` | Genera QR del fotógrafo | `CONSERVAR EN APP` | Negocio + `qr_flutter` | — | — |
+| Guardado en galería | `core/services/storage/media_storage_service_impl.dart` (+ contrato + `storage_result.dart`) | `camera_experience_screen`, `booking_user_vm` | `REVISAR MÁS ADELANTE` | Adaptador fino de un plugin; reutilizable en concepto pero hoy delgado y específico | posible `media_storage` futuro | Depende de `CaptureResult` (`camera_core`) |
+| Subida/entrega de imágenes (fotógrafo) | `features/photographers/sessions/viewmodel/session_photographer_vm.dart`, `core/data/photographer/remote_photographer_ds.dart` | Flujo de entrega | `CONSERVAR EN APP` | Negocio; subida multipart cruda, sin procesamiento | — | — |
+| Selección de imágenes (perfil/chat/registro) | `features/shared/edit_profile/viewmodel/*`, `features/auth/viewmodel/register_vm.dart`, `chat_screen.dart` | `image_picker` | `CONSERVAR EN APP` | Flujos de negocio; sin procesamiento | — | — |
+| Procesamiento de imágenes (compresión/crop/perspectiva/resize/EXIF) | — | **No existe** en el código | n/a | No hay implementación que extraer | — | No inventar |
+
+**4. Candidatos reales de extracción (no aprobados):**
+- `[PROPUESTO] face_detection` — es el único candidato con base de código suficiente: motor ML Kit confinado + modelos propios + mapeo de overlay genérico. Requiere decidir la frontera de UI (D2) y la estrategia `CameraFrame→InputImage` (D3).
+- `COMPARTIR PARCIALMENTE` del QR legacy — no es un paquete nuevo: es **reemplazar** la captura `mobile_scanner` de `qr_scan_screen.dart` por `camera_core`+`qr_scanner`, dejando UI y negocio en la app (roadmap §10, paso 1).
+
+**5. Debe permanecer en CAPPFRONT:**
+- Toda la experiencia fotográfica (`features/camera/presentation/*`), el shader y sus looks (`realtime/*`, `RealtimeParams`), el negocio y UI de QR (`features/shared/qr/*`), la subida/entrega del fotógrafo, la selección de imágenes y la visualización de galerías. El guardado en galería queda `REVISAR MÁS ADELANTE`.
+
+**6. Hallazgos que precisan el snapshot técnico (§12):**
+- Confirmado que la detección facial se alimenta del `frameStream` de `camera_core` en la pantalla de cámara (preview-only; drop-if-busy en la pantalla). El servicio y modelos ya son neutrales → traslado de bajo riesgo técnico.
+- El overlay facial contiene **lógica genérica reutilizable** (`mapFrameToView`/`mapRectToView`, cover/crop/mirror) acoplada al `BoxFit.cover` de `camera_core.buildPreview`: es un matiz nuevo para la frontera de UI de `face_detection` (D2).
+- Reconfirmado: **sin procesamiento de archivos de imagen** en todo `lib/` (ni compresión, ni resize, ni crop, ni perspectiva, ni EXIF). `image_processing` sigue siendo `[FUTURO]` sin base de código.
+
+**7. Próximos pasos sugeridos (no aprobados):**
+- Mantener el orden del roadmap (§10): primero consolidar el QR legacy sobre `qr_scanner`+`camera_core`; después definir/extraer `face_detection`.
+- Antes de `face_detection`, cerrar D2 (frontera del overlay) y D3 (conversión de frames).
+- Ninguno de estos pasos está autorizado por esta auditoría; requieren aprobación explícita (D1–D8).
+
+---
+
+## 16. Pregunta guía para retomar
 
 ¿Podemos ofrecer a CAPPFRONT fotografía y a SAPIENS captura institucional de identidad **reutilizando capacidades técnicas comunes**, sin que ninguna app tenga que adoptar la UI, los controles ni el flujo de la otra?
 
