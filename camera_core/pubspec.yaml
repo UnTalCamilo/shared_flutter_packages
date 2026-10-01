@@ -1,0 +1,21 @@
+name: camera_core
+description: Infraestructura de cámara reutilizable e independiente de casos de uso de visión (QR, rostro, OCR). Encapsula el plugin camera tras un contrato propio.
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.5.4
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: ^0.11.0+1
+  permission_handler: ^12.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
