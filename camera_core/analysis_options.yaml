@@ -7,6 +7,14 @@ analyzer:
   errors:
     # El contrato público debe mantenerse documentado.
     public_member_api_docs: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   rules:

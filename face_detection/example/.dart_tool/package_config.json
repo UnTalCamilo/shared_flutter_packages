@@ -3,25 +3,25 @@
   "packages": [
     {
       "name": "async",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/async-2.13.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/async-2.13.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
       "name": "camera",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/camera-0.11.4",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/camera-0.11.4",
       "packageUri": "lib/",
       "languageVersion": "3.9"
     },
     {
       "name": "camera_android_camerax",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/camera_android_camerax-0.6.30",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/camera_android_camerax-0.6.30",
       "packageUri": "lib/",
       "languageVersion": "3.9"
     },
     {
       "name": "camera_avfoundation",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/camera_avfoundation-0.9.23+2",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/camera_avfoundation-0.9.23+2",
       "packageUri": "lib/",
       "languageVersion": "3.9"
     },
@@ -33,31 +33,31 @@
     },
     {
       "name": "camera_platform_interface",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/camera_platform_interface-2.14.0",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/camera_platform_interface-2.14.0",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
     {
       "name": "camera_web",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/camera_web-0.3.5+6",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/camera_web-0.3.5+6",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
     {
       "name": "characters",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/characters-1.4.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/characters-1.4.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
       "name": "collection",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/collection-1.19.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/collection-1.19.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
       "name": "cross_file",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/cross_file-0.3.5+5",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/cross_file-0.3.5+5",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
@@ -69,151 +69,151 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///D:/flutter/packages/flutter",
+      "rootUri": "file:///D:/Programs/flutter/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.10"
+      "languageVersion": "3.11"
     },
     {
       "name": "flutter_lints",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/flutter_lints-4.0.0",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_lints-4.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
     {
       "name": "flutter_plugin_android_lifecycle",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.35",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.35",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
     {
       "name": "flutter_web_plugins",
-      "rootUri": "file:///D:/flutter/packages/flutter_web_plugins",
+      "rootUri": "file:///D:/Programs/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
-      "languageVersion": "3.10"
+      "languageVersion": "3.11"
     },
     {
       "name": "google_mlkit_commons",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/google_mlkit_commons-0.13.0",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/google_mlkit_commons-0.13.0",
       "packageUri": "lib/",
       "languageVersion": "3.12"
     },
     {
       "name": "google_mlkit_face_detection",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/google_mlkit_face_detection-0.15.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/google_mlkit_face_detection-0.15.1",
       "packageUri": "lib/",
       "languageVersion": "3.12"
     },
     {
       "name": "lints",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/lints-4.0.0",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/lints-4.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
     {
       "name": "material_color_utilities",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/material_color_utilities-0.13.0",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/material_color_utilities-0.13.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "meta",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/meta-1.18.0",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/meta-1.19.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "path",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/path-1.9.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
       "name": "permission_handler",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/permission_handler-12.0.3",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/permission_handler-12.0.3",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "permission_handler_android",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/permission_handler_android-13.0.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/permission_handler_android-13.0.1",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "permission_handler_apple",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/permission_handler_apple-9.6.2",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/permission_handler_apple-9.6.2",
       "packageUri": "lib/",
       "languageVersion": "3.6"
     },
     {
       "name": "permission_handler_html",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/permission_handler_html-0.1.4+1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/permission_handler_html-0.1.4+1",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "permission_handler_platform_interface",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/permission_handler_platform_interface-4.4.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/permission_handler_platform_interface-4.4.1",
       "packageUri": "lib/",
       "languageVersion": "3.6"
     },
     {
       "name": "permission_handler_windows",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/permission_handler_windows-0.2.2",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/permission_handler_windows-0.2.2",
       "packageUri": "lib/",
       "languageVersion": "3.6"
     },
     {
       "name": "plugin_platform_interface",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/plugin_platform_interface-2.1.8",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/plugin_platform_interface-2.1.8",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///D:/flutter/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///D:/Programs/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.10"
+      "languageVersion": "3.11"
     },
     {
       "name": "source_span",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/source_span-1.10.2",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/source_span-1.10.2",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
     {
       "name": "stream_transform",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/stream_transform-2.1.2",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/stream_transform-2.1.2",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
       "name": "string_scanner",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/string_scanner-1.4.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/string_scanner-1.4.1",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
     {
       "name": "term_glyph",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/term_glyph-1.2.2",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/term_glyph-1.2.2",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
     {
       "name": "vector_math",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/vector_math-2.2.0",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.4.3",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.10"
     },
     {
       "name": "web",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/web-1.1.1",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/web-1.1.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
       "name": "yaml",
-      "rootUri": "file:///D:/FlutterCache/hosted/pub.dev/yaml-3.1.4",
+      "rootUri": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache/hosted/pub.dev/yaml-3.1.4",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -225,8 +225,8 @@
     }
   ],
   "generator": "pub",
-  "generatorVersion": "3.12.2",
-  "flutterRoot": "file:///D:/flutter",
-  "flutterVersion": "3.44.8",
-  "pubCache": "file:///D:/FlutterCache"
+  "generatorVersion": "3.13.0",
+  "flutterRoot": "file:///D:/Programs/flutter",
+  "flutterVersion": "3.47.0",
+  "pubCache": "file:///C:/Users/Mirlo/AppData/Local/Pub/Cache"
 }
