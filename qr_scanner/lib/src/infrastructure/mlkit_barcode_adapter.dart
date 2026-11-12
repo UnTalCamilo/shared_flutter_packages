@@ -25,6 +25,16 @@ class MlkitBarcodeAdapter {
   final BarcodeScanner _scanner;
   bool _closed = false;
 
+  /// Contador de frames procesados para muestreo de logs de diagnóstico.
+  int _framesProcessed = 0;
+  /// Intervalo de frames entre resúmenes de diagnóstico (cada 60 frames ≈ 6s
+  /// a 10 fps).
+  static const int _diagnosticLogInterval = 60;
+  /// Tiempo acumulado de conversión para resumen periódico.
+  int _totalConvertUs = 0;
+  /// Tiempo acumulado de detección ML Kit para resumen periódico.
+  int _totalDetectUs = 0;
+
   MlkitBarcodeAdapter({
     required Set<QrFormat> formats,
     this._logger = const DebugPrintQrLogger(),
@@ -34,16 +44,47 @@ class MlkitBarcodeAdapter {
   /// frame no es procesable. No lanza: ante error de ML Kit devuelve `null`.
   Future<QrScanResult?> detect(CameraFrame frame) async {
     if (_closed) return null;
-    final input = _toInputImage(frame);
-    if (input == null) return null;
 
+    final convertStart = DateTime.now().microsecondsSinceEpoch;
+    final input = _toInputImage(frame);
+    final convertEnd = DateTime.now().microsecondsSinceEpoch;
+    if (input == null) {
+      _totalConvertUs += (convertEnd - convertStart);
+      _maybeLogDiagnosticSummary();
+      return null;
+    }
+
+    final rotation = input.metadata?.rotation;
+    final detectStart = DateTime.now().microsecondsSinceEpoch;
     try {
       final barcodes = await _scanner.processImage(input);
-      if (_closed || barcodes.isEmpty) return null;
+      final detectEnd = DateTime.now().microsecondsSinceEpoch;
+      _totalConvertUs += (convertEnd - convertStart);
+      _totalDetectUs += (detectEnd - detectStart);
+
+      if (_closed || barcodes.isEmpty) {
+        _framesProcessed++;
+        _maybeLogDiagnosticSummary();
+        return null;
+      }
 
       final barcode = barcodes.first;
       final value = barcode.rawValue;
-      if (value == null || value.isEmpty) return null;
+      if (value == null || value.isEmpty) {
+        _framesProcessed++;
+        _maybeLogDiagnosticSummary();
+        return null;
+      }
+
+      _framesProcessed++;
+      _maybeLogDiagnosticSummary();
+
+      _logger.d(
+        'qr_scanner detected frameId=${frame.frameId} '
+        'format=${barcode.format} rotation=${rotation?.index ?? -1} '
+        'convertUs=${convertEnd - convertStart} '
+        'detectUs=${detectEnd - detectStart}',
+      );
 
       return QrScanResult(
         rawValue: value,
@@ -57,8 +98,29 @@ class MlkitBarcodeAdapter {
     } catch (e, s) {
       _logger.w('Fallo detectando barcode para frame ${frame.frameId}: $e');
       _logger.d('$s');
+      _framesProcessed++;
+      _maybeLogDiagnosticSummary();
       return null;
     }
+  }
+
+  /// Registra un resumen periódico de tiempos de conversión y detección,
+  /// evitando logs redundantes por frame.
+  void _maybeLogDiagnosticSummary() {
+    _framesProcessed++;
+    if (_framesProcessed % _diagnosticLogInterval != 0) return;
+
+    final avgConvertUs = _framesProcessed > 0
+        ? _totalConvertUs ~/ _framesProcessed
+        : 0;
+    final avgDetectUs = _framesProcessed > 0
+        ? _totalDetectUs ~/ _framesProcessed
+        : 0;
+
+    _logger.d(
+      'qr_scanner diagnostic frames=$_framesProcessed '
+      'avgConvertUs=$avgConvertUs avgDetectUs=$avgDetectUs',
+    );
   }
 
   Future<void> close() async {
@@ -172,15 +234,18 @@ class MlkitBarcodeAdapter {
     return out;
   }
 
-  /// Rotación derivada de `sensorOrientation` + `lensDirection` (portrait
-  /// asumido; `rotationDegrees` del frame es `null` hoy). Si el frame ya trae
-  /// `rotationDegrees`, se respeta.
+  /// Rotación para ML Kit.
+  ///
+  /// Si el frame ya trae `rotationDegrees` (producido por `camera_core`), se
+  /// usa directamente. Si no, se deriva de `sensorOrientation` asumiendo
+  /// `deviceOrientation = 0` (portrait), manteniendo el comportamiento previo
+  /// como fallback para frames sin metadata de orientación.
   int _rotationFor(CameraFrame frame) {
     final provided = frame.metadata.orientation.rotationDegrees;
     if (provided != null) return provided % 360;
 
     final sensor = frame.metadata.sensorOrientation;
-    const deviceOrientationDegrees = 0; // portrait
+    const deviceOrientationDegrees = 0; // portrait (fallback)
     if (frame.metadata.lensDirection == CameraLensDirection.front) {
       return (sensor + deviceOrientationDegrees) % 360;
     }

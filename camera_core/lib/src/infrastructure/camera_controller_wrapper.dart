@@ -14,6 +14,7 @@ import '../models/camera_frame.dart';
 import '../models/camera_info.dart';
 import '../models/frame_stream_config.dart';
 import 'camera_logger.dart';
+import 'rotation_utils.dart';
 
 /// Wrapper fino y ÚNICO punto de acoplamiento al paquete `camera`.
 ///
@@ -291,6 +292,7 @@ class CameraControllerWrapper {
   bool _frameStreamActive = false;
   int _frameCounter = 0;
   FrameStreamConfig? _frameStreamConfig;
+  String? _lastLoggedFrameMetadataKey;
 
   /// Grupo de formato solicitado a la plataforma para el stream (se aplica al
   /// construir el `CameraController`). Por defecto YUV420.
@@ -322,6 +324,13 @@ class CameraControllerWrapper {
     _frameCounter = 0;
     _lastDeliveredFrameMicros = 0;
     _frameStreamActive = true;
+    _lastLoggedFrameMetadataKey = null;
+
+    _logger.d(
+      'camera_core frameStream started platform=${_platformName()} '
+      'configFormat=${config.requestedFormat} maxFps=${config.maxFps} '
+      'enableTimestamp=${config.enableTimestamp}',
+    );
 
     await controller.startImageStream(_onImageAvailable);
   }
@@ -369,6 +378,18 @@ class CameraControllerWrapper {
           ),
       ];
 
+      final deviceOrientationRaw = _controller?.value.deviceOrientation;
+      final deviceOrientationDegrees =
+          deviceOrientationToDegrees(deviceOrientationRaw);
+      final sensorOrientation = _description?.sensorOrientation ?? 0;
+      final rotationDegrees = computeRotationDegrees(
+        sensorOrientation: sensorOrientation,
+        deviceOrientationDegrees: deviceOrientationDegrees,
+        isAndroid: Platform.isAndroid,
+        isFrontCamera: _description?.lensDirection ==
+            cam.CameraLensDirection.front,
+      );
+
       final frame = CameraFrame(
         planes: planes,
         width: image.width,
@@ -378,11 +399,9 @@ class CameraControllerWrapper {
         metadata: CameraFrameMetadata(
           timestamp: DateTime.now(),
           orientation: FrameOrientation(
-            sensorOrientation: _description?.sensorOrientation ?? 0,
-            // Camera Core no captura hoy la orientación de display por frame;
-            // por tanto rotationDegrees no puede derivarse de forma fiable.
-            deviceOrientation: null,
-            rotationDegrees: null,
+            sensorOrientation: sensorOrientation,
+            deviceOrientation: deviceOrientationDegrees,
+            rotationDegrees: rotationDegrees,
           ),
           lensDirection: _description != null
               ? _fromPackageLens(_description!.lensDirection)
@@ -394,6 +413,7 @@ class CameraControllerWrapper {
         frameId: _frameCounter++,
       );
       if (_frameStreamActive && !_frameController.isClosed) {
+        _logFrameMetadataIfChanged(frame);
         _frameController.add(frame);
       }
     } catch (e, s) {
@@ -402,6 +422,12 @@ class CameraControllerWrapper {
         _frameController.addError(e, s);
       }
     }
+  }
+
+  String _platformName() {
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isIOS) return 'ios';
+    return 'other';
   }
 
   /// Decide si el frame actual debe entregarse según `maxFps`. Descarta frames
@@ -418,6 +444,40 @@ class CameraControllerWrapper {
     }
     _lastDeliveredFrameMicros = nowMicros;
     return true;
+  }
+
+  /// Registra metadatos de frame solo cuando cambian (formato, dimensiones,
+  /// strides u orientación), evitando logs redundantes en cada frame.
+  void _logFrameMetadataIfChanged(CameraFrame frame) {
+    final orientation = frame.metadata.orientation;
+    final currentKey = _frameMetadataKey(frame);
+    if (currentKey == _lastLoggedFrameMetadataKey) return;
+    _lastLoggedFrameMetadataKey = currentKey;
+
+    _logger.d(
+      'camera_core frame frameId=${frame.frameId} platform=${_platformName()} '
+      'format=${frame.format} width=${frame.width} height=${frame.height} '
+      'planes=${frame.planes.length} '
+      'bytesPerRow=${frame.planes.map((p) => p.bytesPerRow).toList()} '
+      'bytesPerPixel=${frame.planes.map((p) => p.bytesPerPixel).toList()} '
+      'sensorOrientation=${orientation.sensorOrientation} '
+      'deviceOrientation=${orientation.deviceOrientation} '
+      'rotationDegrees=${orientation.rotationDegrees} '
+      'lensDirection=${frame.metadata.lensDirection}',
+    );
+  }
+
+  /// Clave simple para detectar cambios en metadatos de frame (sin incluir
+  /// frameId ni timestamp, que cambian siempre).
+  String _frameMetadataKey(CameraFrame frame) {
+    final orientation = frame.metadata.orientation;
+    return '${frame.format}_${frame.width}_${frame.height}_'
+        '${frame.planes.length}_'
+        '${frame.planes.map((p) => p.bytesPerRow).join(",")}_'
+        '${orientation.sensorOrientation}_'
+        '${orientation.deviceOrientation}_'
+        '${orientation.rotationDegrees}_'
+        '${frame.metadata.lensDirection}';
   }
 
   cam.ImageFormatGroup _toPackageImageFormatGroup(CameraFrameFormat f) =>
