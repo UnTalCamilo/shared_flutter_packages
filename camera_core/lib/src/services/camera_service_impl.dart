@@ -381,7 +381,7 @@ class CameraServiceImpl implements ICameraService {
   Future<void> pause() async {
     if (_state != CameraState.ready) return;
     await stopFrameStream();
-    await _controllerWrapper.dispose();
+    await _controllerWrapper.release();
     _emit(CameraState.uninitialized);
   }
 

@@ -491,12 +491,18 @@ class CameraControllerWrapper {
 
   // ========== CICLO DE VIDA ==========
 
-  Future<void> dispose() async {
+  /// Libera el controlador actual sin cerrar el stream reutilizable de frames.
+  /// Se usa para pausar y permitir que el servicio vuelva a inicializarse.
+  Future<void> release() async {
     await stopFrameStream();
-    await _frameController.close();
     await _safeDisposeController();
     _description = null;
     _currentCapabilities = null;
+  }
+
+  Future<void> dispose() async {
+    await release();
+    await _frameController.close();
   }
 
   // ========== INTERNOS ==========
